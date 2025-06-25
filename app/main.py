@@ -35,6 +35,7 @@ def load_filings_data():
     try:
         data_path = os.path.join(
             os.path.dirname(__file__),
+            "..",
             "data",
             "processed",
             "filings_with_embeddings.json",
