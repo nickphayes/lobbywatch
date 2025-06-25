@@ -1,4 +1,4 @@
 .env
 .venv
-data/
 playground.py
+.streamlit/
