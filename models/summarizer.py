@@ -202,34 +202,3 @@ class LobbyingSummarizer:
             "original_chars": len(original_text),
             "summary_chars": len(summary),
         }
-
-
-# Example usage and testing
-if __name__ == "__main__":
-    # Example with your sample data structure
-    sample_filing = {
-        "client": {
-            "name": "E-COM 9-1-1 DISPATCH CENTER",
-            "general_description": "Emergency services dispatch center",
-        },
-        "registrant": {"name": "SMITH GARSON FKA SMITH DAWSON & ANDREWS"},
-        "filing_period_display": "1st Quarter (Jan 1 - Mar 31)",
-        "filing_year": 2024,
-        "lobbying_activities": [
-            {
-                "general_issue_code_display": "Budget/Appropriations",
-                "description": "Federal funding opportunities related to emergency and disaster preparedness.",
-                "lobbyists": [
-                    {"lobbyist": {"first_name": "BRETT", "last_name": "GARSON"}},
-                    {"lobbyist": {"first_name": "KIERSTIN", "last_name": "STRADFORD"}},
-                ],
-            }
-        ],
-    }
-
-    summarizer = LobbyingSummarizer()
-    filing_summary = summarizer.summarize_filing(sample_filing)
-
-    print("Filing Summary:")
-    for key, value in filing_summary.items():
-        print(f"{key.title()}: {value}")
