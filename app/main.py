@@ -2,9 +2,11 @@ import json
 import os
 import random
 import sys
+from pathlib import Path
 from typing import Dict, List
 
 import pandas as pd
+import requests
 import streamlit as st
 
 # Add the models directory to the path
@@ -29,26 +31,91 @@ st.set_page_config(
 
 
 # Cache functions for better performance
-@st.cache_data
-def load_filings_data():
-    """Load and cache the filings data."""
+GITHUB_USERNAME = "nickphayes"
+GITHUB_REPO = "lobbywatch"
+RELEASE_TAG = "v1.0"
+FILENAME = "filings_with_embeddings.json"
+
+# Construct the download URL
+DATA_URL = (
+    "https://github.com/user-attachments/files/20896556/filings_with_embeddings.json"
+)
+
+
+@st.cache_data(ttl=3600)  # Cache for 1 hour to avoid repeated downloads
+def load_filings_from_github():
+    """Load filings data from GitHub Releases."""
     try:
-        data_path = os.path.join(
+        st.info("Loading filings data from GitHub Releases...")
+
+        response = requests.get(DATA_URL)
+        response.raise_for_status()  # Raises an exception for bad status codes
+
+        filings = response.json()
+
+        st.success(f"Successfully loaded {len(filings)} filings from GitHub!")
+        return filings
+
+    except requests.RequestException as e:
+        st.error(f"Network error downloading from GitHub: {e}")
+        return None
+    except json.JSONDecodeError as e:
+        st.error(f"Error parsing JSON data from GitHub: {e}")
+        return None
+    except Exception as e:
+        st.error(f"Unexpected error loading from GitHub: {e}")
+        return None
+
+
+@st.cache_data
+def load_filings_from_file():
+    """Fallback: Load from local file for development."""
+    possible_paths = [
+        # Original path structure you were using
+        os.path.join(
             os.path.dirname(__file__),
             "..",
             "data",
             "processed",
             "filings_with_embeddings.json",
-        )
-        with open(data_path, "r") as f:
-            filings = json.load(f)
+        ),
+        # Alternative paths
+        os.path.join(os.path.dirname(__file__), "filings_with_embeddings.json"),
+        os.path.join(os.path.dirname(__file__), "data", "filings_with_embeddings.json"),
+        Path(__file__).parent / "filings_with_embeddings.json",
+    ]
+
+    for data_path in possible_paths:
+        try:
+            if os.path.exists(data_path):
+                with open(data_path, "r", encoding="utf-8") as f:
+                    filings = json.load(f)
+                st.info(
+                    f"📁 Loaded {len(filings)} filings from local file: {data_path}"
+                )
+                return filings
+        except (FileNotFoundError, json.JSONDecodeError):
+            continue
+
+    return None
+
+
+@st.cache_data
+def load_filings_data():
+    """Load and cache the filings data with GitHub and local fallbacks."""
+
+    # Method 1: Try GitHub Releases first (production)
+    filings = load_filings_from_github()
+    if filings:
         return filings
-    except FileNotFoundError:
-        st.error(f"Could not find filings.json at expected path: {data_path}")
-        return []
-    except json.JSONDecodeError:
-        st.error("Error parsing filings.json - please check the file format.")
-        return []
+
+    # Method 2: Fallback to local file (development)
+    st.warning("GitHub download failed, trying local file...")
+    filings = load_filings_from_file()
+    if filings:
+        return filings
+
+    return []
 
 
 @st.cache_resource
