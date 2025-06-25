@@ -31,11 +31,7 @@ st.set_page_config(
 
 
 # Cache functions for better performance
-GITHUB_USERNAME = "nickphayes"
-GITHUB_REPO = "lobbywatch"
-RELEASE_TAG = "v1.0"
 FILENAME = "filings_with_embeddings.json"
-
 # Construct the download URL
 DATA_URL = (
     "https://github.com/user-attachments/files/20896556/filings_with_embeddings.json"
